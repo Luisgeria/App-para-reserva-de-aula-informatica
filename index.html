@@ -248,8 +248,13 @@
                                 reserves[slotKey] = data[key];
                             });
                         }
-                        resolve();
+                        render();
+                    }, (error) => {
+                        console.error("Error en Firebase:", error);
+                        updateConnectionStatus('error', 'Error de conexión');
                     });
+                    // Resolvemos inmediatamente después de suscribirnos
+                    resolve();
                 });
                 
                 promises.push(promise);
@@ -257,7 +262,6 @@
 
             Promise.all(promises).then(() => {
                 updateConnectionStatus('connected', 'Conectado');
-                render();
             });
         }
 
