@@ -2,21 +2,21 @@
   "name": "Reserva Aula Informática - CEIP Puente de Simancas",
   "short_name": "Aula Informática",
   "description": "Sistema de reserva del aula de informática en tiempo real",
-  "start_url": "/Aula-Informatica/",
-  "scope": "/Aula-Informatica/",
+  "start_url": "/App-para-reserva-de-aula-informatica/",
+  "scope": "/App-para-reserva-de-aula-informatica/",
   "display": "standalone",
   "background_color": "#f0fdf4",
   "theme_color": "#10b981",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/Aula-Informatica/icon-192.png",
+      "src": "/App-para-reserva-de-aula-informatica/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/Aula-Informatica/icon-512.png",
+      "src": "/App-para-reserva-de-aula-informatica/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
