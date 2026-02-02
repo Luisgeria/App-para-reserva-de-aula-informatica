@@ -3,491 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#10b981">
     <title>Reserva Aula Informática - CEIP Puente de Simancas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            background-color: #f0fff0;
-            color: #333;
-            padding: 15px;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 10px;
-        }
-        h1 {
-            font-size: 1.8rem;
-            color: #2e7d32;
-            margin-bottom: 5px;
-        }
-        .subtitle {
-            font-size: 1.2rem;
-            color: #1b5e20;
-        }
-        .status {
-            text-align: center;
-            font-size: 1.1rem;
-            margin: 10px 0;
-            padding: 8px;
-            background-color: #e8f5e9;
-            border-radius: 8px;
-            color: #1b5e20;
-        }
-        .instructions {
-            background-color: #e3f2fd;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            text-align: center;
-        }
-        .instructions h2 {
-            color: #0288d1;
-            margin-bottom: 10px;
-        }
-        .instructions ul {
-            text-align: left;
-            padding-left: 20px;
-        }
-        .instructions {
-            margin-bottom: 8px;
-        }
-        .week-selector {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #ffffff;
-            padding: 12px 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .week-selector h2 {
-            font-size: 1.3rem;
-            color: #546e7a;
-        }
-        .week-selector button {
-            background-color: #e0e0e0;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 1.2rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #37474f;
-            transition: background-color 0.3s;
-        }
-        .week-selector button:hover {
-            background-color:d0d0d0;
-        }
-        .calendar-container {
-            overflow-x: auto;
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap');
+        body { font-family: 'Outfit', sans-serif; background-color: #f0fdf4; margin: 0; padding: 15px; }
+        
+        /* CONTENEDOR CON BARRA DE SCROLL FORZADA */
+        .scroll-container {
+            width: 100%;
+            overflow-x: scroll !important; /* Forzamos scroll horizontal */
+            overflow-y: hidden;
+            background: white;
+            border-radius: 1rem;
+            border: 2px solid #e2e8f0;
             -webkit-overflow-scrolling: touch;
+        }
+
+        /* Estilo de la barra de desplazamiento para que sea visible siempre en móvil */
+        .scroll-container::-webkit-scrollbar {
+            height: 12px; /* Más gruesa para que sea fácil de tocar */
+            display: block;
+        }
+        .scroll-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
             border-radius: 10px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            scrollbar-width: thin;
-            scrollbar-color: #888 #f1f1f1;
         }
-        .calendar-container::-webkit-scrollbar {
-            height: 8px;
+        .scroll-container::-webkit-scrollbar-thumb {
+            background: #10b981; /* Color verde para que se vea bien */
+            border-radius: 10px;
+            border: 2px solid #f1f5f9;
         }
-        .calendar-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-        .calendar-container::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
-        }
-        .calendar-container::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
+
         table {
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 900px; /* Forzamos el ancho para obligar al scroll */
             width: 100%;
-            border-collapse: collapse;
-            min-width: 650px;
         }
-        th {
-            background-color: #2e7d32;
+
+        .day-header { 
+            position: sticky; 
+            top: 0; 
+            z-index: 10; 
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
-            padding: 12px 8px;
-            text-align: center;
-            font-size: 1.1rem;
-            position: sticky;
-            top: 0;
         }
-        td {
-            padding: 12px 8px;
-            text-align: center;
-            border: 1px solid #e0e0e0;
-            min-width: 100px;
-        }
-        .time-slot {
-            font-weight: bold;
-            color: #1b5e20;
-            text-align: left;
-            padding-left: 10px;
-            position: sticky;
-            left: 0;
-            background-color: white;
-            z-index: 2;
-        }
-        .available {
-            background-color: #e8f5e9;
-            border: 2px solid #81c784;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .available:hover {
-            background-color: #c8e6c9;
-            transform: scale(1.02);
-        }
-        .reserved {
-            background-color: #ffebee;
-            border: 2px solid #ef9a9a;
-            border-radius: 8px;
-            color: #d32f2f;
-            font-weight: bold;
-        }
-        .scroll-hint {
-            text-align: center;
-            font-style: italic;
-            color: #546e7a;
-            margin-top: 5px;
-            font-size: 0.9rem;
-            display: none;
-        }
-        @media (max-width: 768px) {
-            .scroll-hint {
-                display: block;
-            }
-            .week-selector {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .week-selector button {
-                width: 100%;
-                height: 45px;
-            }
-        }
-        .realtime {
-            text-align: center;
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #e8f5e9;
-            border-radius: 8px;
-            color: #1b5e20;
-            font-weight: bold;
-        }
-        footer {
-            text-align: center;
-            margin-top: 25px;
-            padding: 15px;
-            color: #546e7a;
-            font-size: 0.9rem;
-        }
-        .install-btn {
-            display: inline-block;
-            background-color: #4caf50;
-            color: white;
-            padding: 12px 25px;
-            border-radius: 30px;
-            text-decoration: none;
-            font-weight: bold;
-            margin-top: 15px;
-            box-shadow: 0 3px 5px rgba(0,0,0,0.2);
-            transition: background-color 0.3s;
-        }
-        .install-btn:hover {
-            background-color: #388e3c;
-        }
-        .install-container {
-            text-align: center;
-            margin: 20px 0;
-            padding: 15px;
-            background-color: #e3f2fd;
-            border-radius: 10px;
-        }
-        .close-install {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #607d8b;
-            background: none;
-            border: none;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
+
+        .period-cell { 
+            border-radius: 0.75rem; 
+            border: 2px solid #d1fae5;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
         }
-        .modal-content {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 500px;
+
+        .reserved { background-color: #fee2e2; border-color: #fca5a5; }
+        .available { background-color: #ffffff; cursor: pointer; }
+
+        @media (max-width: 768px) {
+            /* Mantenemos las horas visibles a la izquierda */
+            th:first-child, td:first-child {
+                position: sticky;
+                left: 0;
+                z-index: 20;
+                background: white;
+                box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            }
+            th:first-child { background: #059669; }
         }
-        .modal h2 {
-            margin-bottom: 15px;
-            color: #2e7d32;
-        }
-        .modal input {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-        .modal-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-        .modal-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1rem;
-        }
-        .cancel-btn {
-            background-color: #f44336;
-            color: white;
-        }
-        .confirm-btn {
-            background-color: #4caf50;
-            color: white;
-        }
-        .notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #4caf50;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 8px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-            display: none;
-            z-index: 2000;
-        }
+
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
+        .modal.active { display: flex; }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Reserva Aula Informática - CEIP Puente de Simancas</h1>
-        <div class="subtitle">🖥️ Aula de Informática</div>
-        <div class="subtitle">CEIP Puente de Simancas</div>
-    </header>
-    
-    <div class="status">Inicializando...</div>
-    
-    <div class="instructions">
-        <h2>Instrucciones</h2>
-        <ul>
-            <li>Haz clic en un horario disponible para reservar el aula.</li>
-            <li>Solo puedes liberar tus propias reservas desde este dispositivo.</li>
-        </ul>
-    </div>
-    
-    <div class="week-selector">
-        <button id="prev-week">&lt;</button>
-        <h2>Semana actual</h2>
-        <button id="next-week">&gt;</button>
-    </div>
-    
-    <div class="calendar-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Horario</th>
-                    <th>Lun</th>
-                    <th>Mar</th>
-                    <th>Mié</th>
-                    <th>Jue</th>
-                    <th>Vie</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="time-slot">09:00 - 10:00</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                </tr>
-                <tr>
-                    <td class="time-slot">10:00 - 11:00</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                </tr>
-                <tr>
-                    <td class="time-slot">11:00 - 12:00</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                </tr>
-                <tr>
-                    <td class="time-slot">12:30 - 13:00</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                </tr>
-                <tr>
-                    <td class="time-slot">13:00 - 13:30</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                </tr>
-                <tr>
-                    <td class="time-slot">13:30 - 14:00</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    
-    <div class="scroll-hint">👉 Desliza para ver más días</div>
-    
-    <div class="realtime">Base de Datos en Tiempo Real Activa</div>
-    
-    <footer>
-        <p>App elaborada por @luisgeria · Enero 2026</p>
-    </footer>
-    
-    <div class="install-container" id="installPrompt">
-        <h2>Instalar App</h2>
-        <p>Acceso rápido desde tu móvil</p>
-        <button class="install-btn" id="installBtn">Instalar</button>
-        <button class="close-install" id="closeInstall">&times;</button>
-    </div>
-    
-    <div class="modal" id="reservationModal">
-        <div class="modal-content">
-            <h2>Nueva Reserva</h2>
-            <input type="text" id="teacherName" placeholder="Nombre Profesor/a" required>
-            <input type="text" id="courseGroup" placeholder="Curso / Grupo" required>
-            <div class="modal-buttons">
-                <button class="modal-btn cancel-btn" id="cancelBtn">Cancelar</button>
-                <button class="modal-btn confirm-btn" id="confirmBtn">Confirmar</button>
+
+    <div class="max-w-6xl mx-auto">
+        <header class="text-center mb-6">
+            <h1 class="text-3xl font-black text-slate-800">🖥️ Aula Informática</h1>
+            <p class="text-slate-500 font-bold italic">CEIP Puente de Simancas</p>
+            <div class="flex items-center justify-center gap-2 mt-2">
+                <div id="conn-dot" class="w-2 h-2 rounded-full bg-slate-300"></div>
+                <span id="conn-text" class="text-[10px] font-bold text-slate-400 uppercase">Conectando...</span>
             </div>
+        </header>
+
+        <div class="flex items-center justify-between mb-4 bg-white p-3 rounded-2xl shadow-sm border border-slate-100">
+            <button id="prev-week" class="p-2 bg-slate-100 rounded-lg font-bold"> < </button>
+            <span id="week-range" class="font-black text-green-600 text-sm">...</span>
+            <button id="next-week" class="p-2 bg-slate-100 rounded-lg font-bold"> > </button>
+        </div>
+
+        <div class="scroll-container shadow-xl">
+            <table>
+                <thead>
+                    <tr class="day-header text-[11px] uppercase font-bold">
+                        <th class="p-4 text-left">Hora</th>
+                        <th class="p-4 text-center">Lunes</th>
+                        <th class="p-4 text-center">Martes</th>
+                        <th class="p-4 text-center">Miércoles</th>
+                        <th class="p-4 text-center">Jueves</th>
+                        <th class="p-4 text-center">Viernes</th>
+                    </tr>
+                </thead>
+                <tbody id="schedule-body">
+                    <tr><td colspan="6" class="p-10 text-center text-slate-400 font-bold animate-pulse">Cargando Horarios...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <p class="text-center text-[10px] text-slate-400 mt-4 font-bold">↔️ DESLIZA LA BARRA VERDE PARA VER MÁS DÍAS ↔️</p>
+    </div>
+
+    <div id="reserve-modal" class="modal">
+        <div class="bg-white w-[90%] max-w-sm p-6 rounded-3xl shadow-2xl">
+            <h3 class="text-xl font-black mb-1">Reservar Aula</h3>
+            <p id="modal-time-label" class="text-green-600 font-bold text-sm mb-4"></p>
+            <form id="reserve-form" class="space-y-4">
+                <input type="text" id="profesor-name" required placeholder="Nombre del Profesor/a" class="w-full bg-slate-50 border-2 border-slate-100 p-4 rounded-xl outline-none focus:border-green-500">
+                <input type="text" id="curso-name" required placeholder="Curso (ej: 4ºA)" class="w-full bg-slate-50 border-2 border-slate-100 p-4 rounded-xl outline-none focus:border-green-500">
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeModal()" class="flex-1 text-slate-400 font-bold">Cerrar</button>
+                    <button type="submit" id="submit-btn" class="flex-1 bg-green-600 text-white p-4 rounded-xl font-bold">Confirmar</button>
+                </div>
+            </form>
         </div>
     </div>
-    
-    <div class="notification" id="notification">Reserva realizada con éxito</div>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const reservationModal = document.getElementById('reservationModal');
-            const installPrompt = document.getElementById('installPrompt');
-            const installBtn = document.getElementById('installBtn');
-            const closeInstall = document.getElementById('closeInstall');
-            const notification = document.getElementById('notification');
-            
-            // Show reservation modal when clicking on available slot
-            document.querySelectorAll('.available').forEach(slot => {
-                slot.addEventListener('click', function() {
-                    reservationModal.style.display = 'flex';
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAlW7S4tpn4YYkoov1Uq93KFmT8cY8Uzms",
+            authDomain: "app-reserva-de-portatiles.firebaseapp.com",
+            databaseURL: "https://app-reserva-de-portatiles-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "app-reserva-de-portatiles",
+            storageBucket: "app-reserva-de-portatiles.firebasestorage.app",
+            messagingSenderId: "170712420790",
+            appId: "1:170712420790:web:e52d1831be2985c6af3117"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const periods = [{id:'p1',h:"09:00-10:00"},{id:'p2',h:"10:00-11:00"},{id:'p3',h:"11:00-12:00"},{id:'p4',h:"12:30-13:00"},{id:'p5',h:"13:00-13:30"},{id:'p6',h:"13:30-14:00"}];
+        const dayNames = ['Lunes','Martes','Miércoles','Jueves','Viernes'];
+        let reserves = {}, selectedSlot = null, currentWeekStart = null, userId = null;
+
+        function getUserId() {
+            let id = localStorage.getItem('userId');
+            if(!id) { id = 'user_'+Date.now(); localStorage.setItem('userId', id); }
+            return id;
+        }
+
+        function getMonday(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+
+        function initWeek() {
+            currentWeekStart = getMonday(new Date());
+            updateWeekUI();
+            loadWeekData();
+        }
+
+        function updateWeekUI() {
+            const end = new Date(currentWeekStart); end.setDate(end.getDate()+4);
+            document.getElementById('week-range').innerText = `${currentWeekStart.getDate()}/${currentWeekStart.getMonth()+1} - ${end.getDate()}/${end.getMonth()+1}`;
+        }
+
+        async function loadWeekData() {
+            for (let i = 0; i < 5; i++) {
+                const d = new Date(currentWeekStart); d.setDate(d.getDate() + i);
+                const ds = d.toISOString().split('T')[0];
+                onValue(ref(database, `aula-informatica/${ds}`), (snap) => {
+                    const data = snap.val();
+                    if(data) Object.keys(data).forEach(k => reserves[`${ds}_${data[k].slotId}`] = data[k]);
+                    render();
                 });
-            });
-            
-            // Close modal when clicking cancel
-            document.getElementById('cancelBtn').addEventListener('click', function() {
-                reservationModal.style.display = 'none';
-            });
-            
-            // Confirm reservation
-            document.getElementById('confirmBtn').addEventListener('click', function() {
-                const teacherName = document.getElementById('teacherName').value;
-                const courseGroup = document.getElementById('courseGroup').value;
-                
-                if (teacherName && courseGroup) {
-                    reservationModal.style.display = 'none';
-                    document.getElementById('teacherName').value = '';
-                    document.getElementById('courseGroup').value = '';
+            }
+        }
+
+        function render() {
+            const tbody = document.getElementById('schedule-body');
+            tbody.innerHTML = '';
+            const today = new Date(); today.setHours(0,0,0,0);
+
+            periods.forEach(p => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-slate-50';
+                const th = document.createElement('td');
+                th.className = 'p-3 font-bold text-slate-700 text-[11px]';
+                th.innerText = p.h;
+                row.appendChild(th);
+
+                for (let i = 0; i < 5; i++) {
+                    const d = new Date(currentWeekStart); d.setDate(d.getDate() + i);
+                    const ds = d.toISOString().split('T')[0];
+                    const slotKey = `${ds}_${p.id}`;
+                    const res = reserves[slotKey];
+                    const td = document.createElement('td');
+                    td.className = 'p-2';
+                    const div = document.createElement('div');
                     
-                    // Show notification
-                    notification.style.display = 'block';
-                    setTimeout(() => {
-                        notification.style.display = 'none';
-                    }, 3000);
-                    
-                    console.log('Reservation confirmed:', {
-                        teacher: teacherName,
-                        course: courseGroup
-                    });
+                    if (d < today) {
+                        div.className = 'period-cell bg-slate-50 opacity-40 text-[10px]';
+                        div.innerText = 'Pasado';
+                    } else {
+                        div.className = `period-cell ${res ? 'reserved' : 'available'}`;
+                        if(res) {
+                            div.innerHTML = `<p class="font-bold text-[11px] text-center px-1 leading-tight">${res.profe}</p><p class="text-[9px] text-slate-500 font-bold">${res.curso}</p>`;
+                            if(res.userId === userId) {
+                                const btn = document.createElement('button');
+                                btn.className = "text-[9px] mt-2 bg-red-100 text-red-600 px-2 py-1 rounded-lg font-black";
+                                btn.innerText = "LIBERAR";
+                                btn.onclick = (e) => { e.stopPropagation(); window.liberar(ds, p.id); };
+                                div.appendChild(btn);
+                            }
+                        } else {
+                            div.innerHTML = '<span class="text-green-600 text-[10px] font-black uppercase">Libre</span>';
+                            div.onclick = () => openModal(ds, p.id, p.h, dayNames[i]);
+                        }
+                    }
+                    td.appendChild(div);
+                    row.appendChild(td);
                 }
+                tbody.appendChild(row);
             });
-            
-            // Install button functionality
-            installBtn.addEventListener('click', function() {
-                if (window.confirm('¿Quieres instalar la aplicación para acceder más rápido?')) {
-                    installPrompt.style.display = 'none';
-                    notification.textContent = 'App instalada con éxito';
-                    notification.style.display = 'block';
-                    setTimeout(() => {
-                        notification.style.display = 'none';
-                    }, 3000);
-                }
+            document.getElementById('conn-dot').className = 'w-2 h-2 rounded-full bg-green-500';
+            document.getElementById('conn-text').innerText = 'En Línea';
+        }
+
+        window.openModal = (date, slotId, time, day) => {
+            selectedSlot = { date, slotId };
+            document.getElementById('modal-time-label').innerText = `${day} - ${time}`;
+            document.getElementById('reserve-modal').classList.add('active');
+        };
+
+        window.closeModal = () => document.getElementById('reserve-modal').classList.remove('active');
+
+        window.liberar = async (date, slotId) => {
+            if(confirm('¿Quieres liberar esta reserva?')) await remove(ref(database, `aula-informatica/${date}/${slotId}`));
+        };
+
+        document.getElementById('reserve-form').onsubmit = async (e) => {
+            e.preventDefault();
+            await set(ref(database, `aula-informatica/${selectedSlot.date}/${selectedSlot.slotId}`), {
+                slotId: selectedSlot.slotId, profe: document.getElementById('profesor-name').value,
+                curso: document.getElementById('curso-name').value, userId: userId
             });
-            
-            closeInstall.addEventListener('click', function() {
-                installPrompt.style.display = 'none';
-            });
-            
-            // Week navigation
-            document.getElementById('prev-week').addEventListener('click', function() {
-                const weekElement = document.querySelector('.week-selector h2');
-                weekElement.textContent = 'Semana anterior';
-            });
-            
-            document.getElementById('next-week').addEventListener('click', function() {
-                const weekElement = document.querySelector('.week-selector h2');
-                weekElement.textContent = 'Semana siguiente';
-            });
-            
-            // Simulate loading data
-            setTimeout(() => {
-                document.querySelector('.status').textContent = 'Listo';
-            }, 1000);
-        });
+            closeModal();
+        };
+
+        document.getElementById('next-week').onclick = () => { currentWeekStart.setDate(currentWeekStart.getDate()+7); updateWeekUI(); loadWeekData(); };
+        document.getElementById('prev-week').onclick = () => { currentWeekStart.setDate(currentWeekStart.getDate()-7); updateWeekUI(); loadWeekData(); };
+
+        userId = getUserId();
+        initWeek();
     </script>
 </body>
 </html>
