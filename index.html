@@ -250,8 +250,8 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, remove, onValue, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAlW7S4tpn4YYkoov1Uq93KFmT8cY8Uzms",
@@ -356,15 +356,9 @@
             reserves = {};
 
             try {
-                // Probamos la conexión primero
-                const testRef = ref(database, '.info/connected');
-                const snapshot = await get(testRef);
-                
-                if (!snapshot.exists()) {
-                    throw new Error('No se puede conectar a Firebase');
-                }
-
                 // Cargamos los datos de la semana
+                let connectedCount = 0;
+                
                 for (let i = 0; i < 5; i++) {
                     const date = new Date(currentWeekStart);
                     date.setDate(date.getDate() + i);
@@ -382,9 +376,10 @@
                             });
                         }
                         
-                        if (isFirstLoad && i === 4) {
-                            isFirstLoad = false;
+                        connectedCount++;
+                        if (connectedCount === 1 && isFirstLoad) {
                             updateConnectionStatus('connected', 'Conectado');
+                            isFirstLoad = false;
                         }
                         
                         render();
@@ -394,19 +389,18 @@
                     });
                 }
                 
-                // Marcamos como conectado después de suscribirnos
+                // Timeout de seguridad
                 setTimeout(() => {
                     if (isFirstLoad) {
                         updateConnectionStatus('connected', 'Conectado');
                         isFirstLoad = false;
                         render();
                     }
-                }, 1000);
+                }, 2000);
                 
             } catch (error) {
                 console.error('Error al cargar:', error);
                 updateConnectionStatus('error', 'Error al conectar');
-                // Mostrar tabla vacía de todos modos
                 render();
             }
         }
