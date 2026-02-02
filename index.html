@@ -51,14 +51,15 @@
         .schedule-table { 
             overflow-x: auto; 
             -webkit-overflow-scrolling: touch;
+            width: 100%;
         }
         
         .schedule-table::-webkit-scrollbar {
-            height: 8px;
+            height: 6px;
         }
         
         .schedule-table::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: #e5e7eb;
             border-radius: 10px;
         }
         
@@ -67,18 +68,36 @@
             border-radius: 10px;
         }
         
+        .schedule-table table {
+            width: 100%;
+            min-width: 100%;
+        }
+        
         @media (max-width: 768px) {
             .schedule-table table {
-                min-width: 600px;
+                min-width: 700px;
+                table-layout: fixed;
+            }
+            
+            .schedule-table table th,
+            .schedule-table table td {
+                width: auto;
+            }
+            
+            .schedule-table table th:first-child,
+            .schedule-table table td:first-child {
+                width: 90px;
+                min-width: 90px;
             }
             
             .period-cell {
-                min-height: 70px;
-                font-size: 0.75rem;
+                min-height: 65px;
+                font-size: 0.7rem;
+                padding: 0.5rem !important;
             }
             
             .day-header th {
-                padding: 0.5rem;
+                padding: 0.6rem 0.3rem;
                 font-size: 0.65rem;
             }
             
@@ -87,7 +106,14 @@
                 left: 0;
                 background: white;
                 z-index: 5;
-                box-shadow: 2px 0 4px rgba(0,0,0,0.05);
+                box-shadow: 3px 0 5px rgba(0,0,0,0.08);
+            }
+            
+            .schedule-table th:first-child {
+                position: sticky;
+                left: 0;
+                z-index: 11;
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             }
         }
         
@@ -581,39 +607,67 @@
         updateConnectionStatus('connecting', 'Iniciando...');
         initWeek();
 
-        // PWA - Instalación
+        // PWA - Instalación (mejorado para iOS y Android)
         let deferredPrompt;
         const installBanner = document.getElementById('install-banner');
         const installBtn = document.getElementById('install-btn');
         const dismissBtn = document.getElementById('dismiss-btn');
 
+        // Detectar si es móvil
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+        // Detectar si ya está instalada
+        const isInstalled = window.matchMedia('(display-mode: standalone)').matches || 
+                           window.navigator.standalone === true;
+
+        // Para Android (Chrome/Edge)
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevenir que Chrome muestre su propio banner
             e.preventDefault();
             deferredPrompt = e;
             
-            // Mostrar nuestro banner personalizado si no se ha instalado
-            if (!localStorage.getItem('pwa-dismissed')) {
+            if (!localStorage.getItem('pwa-dismissed') && !isInstalled) {
                 setTimeout(() => {
                     installBanner.classList.add('show');
-                }, 2000);
+                }, 3000);
             }
         });
 
+        // Para iOS y Android (mostrar instrucciones)
+        if (isMobile && !isInstalled && !localStorage.getItem('pwa-dismissed')) {
+            // Si no hay beforeinstallprompt (iOS), mostrar banner con instrucciones
+            setTimeout(() => {
+                if (!deferredPrompt) {
+                    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+                    if (isIOS) {
+                        // Cambiar texto del botón para iOS
+                        document.querySelector('#install-banner p.font-bold').textContent = 'Añadir a Inicio';
+                        document.querySelector('#install-banner p.opacity-90').textContent = 'Toca el botón compartir ⬆️';
+                    }
+                    installBanner.classList.add('show');
+                }
+            }, 3000);
+        }
+
         installBtn.addEventListener('click', async () => {
-            if (!deferredPrompt) {
-                return;
+            if (deferredPrompt) {
+                // Android: instalación directa
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    console.log('PWA instalada');
+                }
+                
+                deferredPrompt = null;
+                installBanner.classList.remove('show');
+            } else {
+                // iOS: mostrar instrucciones
+                const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+                if (isIOS) {
+                    alert('Para instalar:\n1. Toca el botón Compartir ⬆️\n2. Selecciona "Añadir a pantalla de inicio"');
+                }
+                installBanner.classList.remove('show');
             }
-            
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            
-            if (outcome === 'accepted') {
-                console.log('PWA instalada');
-            }
-            
-            deferredPrompt = null;
-            installBanner.classList.remove('show');
         });
 
         dismissBtn.addEventListener('click', () => {
@@ -629,3 +683,4 @@
     </script>
 </body>
 </html>
+
