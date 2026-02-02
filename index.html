@@ -62,7 +62,7 @@
             <div class="flex items-center justify-center gap-4 mt-3">
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center">
                     <span id="conn-dot" class="status-dot bg-slate-300"></span> 
-                    <span id="conn-text">Estableciendo conexión...</span>
+                    <span id="conn-text">Inicializando...</span>
                 </span>
             </div>
         </header>
@@ -160,8 +160,12 @@
     </div>
 
     <script type="module">
+        console.log("🚀 Iniciando aplicación...");
+        
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
         import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+
+        console.log("✅ Módulos Firebase importados");
 
         const firebaseConfig = {
             apiKey: "AIzaSyAlW7S4tpn4YYkoov1Uq93KFmT8cY8Uzms",
@@ -173,8 +177,18 @@
             appId: "1:170712420790:web:e52d1831be2985c6af3117"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
+        console.log("🔧 Configuración Firebase:", firebaseConfig);
+
+        let app, database;
+        try {
+            app = initializeApp(firebaseConfig);
+            database = getDatabase(app);
+            console.log("✅ Firebase inicializado correctamente");
+            updateConnectionStatus('connecting', 'Conectando a Firebase...');
+        } catch (error) {
+            console.error("❌ Error inicializando Firebase:", error);
+            updateConnectionStatus('error', 'Error al inicializar');
+        }
 
         const periods = [
             { id: 'p1', h: "09:00 - 10:00" }, 
@@ -197,6 +211,7 @@
                 id = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 localStorage.setItem('userId', id);
             }
+            console.log("👤 User ID:", id);
             return id;
         }
 
@@ -216,7 +231,9 @@
         }
 
         function initWeek() {
+            console.log("📅 Inicializando semana...");
             currentWeekStart = getMonday(new Date());
+            console.log("📅 Lunes de esta semana:", formatDate(currentWeekStart));
             updateWeekDisplay();
             loadWeekData();
         }
@@ -229,43 +246,48 @@
         }
 
         function loadWeekData() {
+            console.log("📥 Cargando datos de la semana...");
             reserves = {};
-            const promises = [];
+            let loadedDays = 0;
 
             for (let i = 0; i < 5; i++) {
                 const date = new Date(currentWeekStart);
                 date.setDate(date.getDate() + i);
                 const dateStr = formatDate(date);
                 
+                console.log(`📆 Cargando día ${i + 1}/5: ${dateStr}`);
+                
                 const dayRef = ref(database, `aula-informatica/${dateStr}`);
                 
-                const promise = new Promise((resolve) => {
-                    onValue(dayRef, (snapshot) => {
-                        const data = snapshot.val();
-                        if (data) {
-                            Object.keys(data).forEach(key => {
-                                const slotKey = `${dateStr}_${data[key].slotId}`;
-                                reserves[slotKey] = data[key];
-                            });
-                        }
+                onValue(dayRef, (snapshot) => {
+                    const data = snapshot.val();
+                    console.log(`📊 Datos recibidos para ${dateStr}:`, data);
+                    
+                    if (data) {
+                        Object.keys(data).forEach(key => {
+                            const slotKey = `${dateStr}_${data[key].slotId}`;
+                            reserves[slotKey] = data[key];
+                        });
+                    }
+                    
+                    loadedDays++;
+                    console.log(`✅ Día cargado (${loadedDays}/5)`);
+                    
+                    if (loadedDays === 1) {
+                        updateConnectionStatus('connected', 'Conectado');
                         render();
-                    }, (error) => {
-                        console.error("Error en Firebase:", error);
-                        updateConnectionStatus('error', 'Error de conexión');
-                    });
-                    // Resolvemos inmediatamente después de suscribirnos
-                    resolve();
+                    } else {
+                        render();
+                    }
+                }, (error) => {
+                    console.error(`❌ Error cargando ${dateStr}:`, error);
+                    updateConnectionStatus('error', 'Error de conexión');
                 });
-                
-                promises.push(promise);
             }
-
-            Promise.all(promises).then(() => {
-                updateConnectionStatus('connected', 'Conectado');
-            });
         }
 
         function render() {
+            console.log("🎨 Renderizando tabla...");
             const tbody = document.getElementById('schedule-body');
             tbody.innerHTML = '';
 
@@ -312,6 +334,8 @@
 
                 tbody.appendChild(row);
             });
+            
+            console.log("✅ Tabla renderizada");
         }
 
         window.openModal = (date, slotId, time, day) => {
@@ -340,8 +364,9 @@
                 try {
                     const slotRef = ref(database, `aula-informatica/${date}/${slotId}`);
                     await remove(slotRef);
+                    console.log("✅ Horario liberado");
                 } catch (e) { 
-                    console.error("Error liberando:", e);
+                    console.error("❌ Error liberando:", e);
                     alert("Error al liberar el horario.");
                 }
             }
@@ -363,11 +388,14 @@
                     userId: userId
                 };
 
+                console.log("💾 Guardando reserva:", reserva);
+
                 const slotRef = ref(database, `aula-informatica/${selectedSlot.date}/${selectedSlot.slotId}`);
                 await set(slotRef, reserva);
+                console.log("✅ Reserva guardada");
                 closeModal();
             } catch (err) {
-                console.error("Error al guardar:", err);
+                console.error("❌ Error al guardar:", err);
                 alert("Error al guardar la reserva.");
                 btn.innerText = "Reintentar";
                 btn.disabled = false;
@@ -390,6 +418,8 @@
             const dot = document.getElementById('conn-dot');
             const textEl = document.getElementById('conn-text');
             
+            console.log(`🔌 Estado de conexión: ${status} - ${text}`);
+            
             if (status === 'connected') {
                 dot.className = 'status-dot bg-green-500';
             } else if (status === 'connecting') {
@@ -401,8 +431,9 @@
             textEl.innerText = text;
         }
 
+        // Inicialización
         userId = getUserId();
-        updateConnectionStatus('connecting', 'Conectando...');
+        console.log("🎬 Iniciando aplicación con userId:", userId);
         initWeek();
     </script>
 </body>
