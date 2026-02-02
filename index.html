@@ -58,7 +58,7 @@
     <div class="max-w-7xl mx-auto">
         <header class="text-center mb-6">
             <h1 class="text-3xl md:text-4xl font-black text-slate-900 tracking-tight mb-2">🖥️ Aula de Informática</h1>
-            <p class="text-sm text-slate-600 font-semibold">CEIP Puente de Simancas</p>
+            <p class="text-lg md:text-xl text-slate-600 font-bold">CEIP Puente de Simancas</p>
             <div class="flex items-center justify-center gap-4 mt-3">
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center">
                     <span id="conn-dot" class="status-dot bg-slate-300"></span> 
@@ -219,6 +219,7 @@
         function initWeek() {
             currentWeekStart = getMonday(new Date());
             updateWeekDisplay();
+            updateNavigationButtons();
             loadWeekData();
         }
 
@@ -227,6 +228,37 @@
             weekEnd.setDate(weekEnd.getDate() + 4);
             document.getElementById('week-range').innerText = 
                 `${formatDateDisplay(currentWeekStart)} - ${formatDateDisplay(weekEnd)}`;
+        }
+
+        function updateNavigationButtons() {
+            const today = getMonday(new Date());
+            const maxWeek = new Date(today);
+            maxWeek.setDate(maxWeek.getDate() + (4 * 7)); // 4 semanas adelante
+            
+            const prevBtn = document.getElementById('prev-week');
+            const nextBtn = document.getElementById('next-week');
+            
+            // Deshabilitar botón anterior si estamos en la semana actual
+            if (currentWeekStart <= today) {
+                prevBtn.disabled = true;
+                prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                prevBtn.classList.remove('hover:bg-slate-200', 'active:scale-95');
+            } else {
+                prevBtn.disabled = false;
+                prevBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                prevBtn.classList.add('hover:bg-slate-200', 'active:scale-95');
+            }
+            
+            // Deshabilitar botón siguiente si estamos a 4 semanas
+            if (currentWeekStart >= maxWeek) {
+                nextBtn.disabled = true;
+                nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                nextBtn.classList.remove('hover:bg-slate-200', 'active:scale-95');
+            } else {
+                nextBtn.disabled = false;
+                nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                nextBtn.classList.add('hover:bg-slate-200', 'active:scale-95');
+            }
         }
 
         async function loadWeekData() {
@@ -292,6 +324,8 @@
         function render() {
             const tbody = document.getElementById('schedule-body');
             tbody.innerHTML = '';
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
             periods.forEach(period => {
                 const row = document.createElement('tr');
@@ -305,29 +339,38 @@
                 for (let i = 0; i < 5; i++) {
                     const date = new Date(currentWeekStart);
                     date.setDate(date.getDate() + i);
+                    date.setHours(0, 0, 0, 0);
                     const dateStr = formatDate(date);
                     const slotKey = `${dateStr}_${period.id}`;
                     const data = reserves[slotKey];
+                    const isPast = date < today;
 
                     const cell = document.createElement('td');
                     cell.className = 'p-2';
 
                     const div = document.createElement('div');
-                    div.className = `period-cell p-3 flex flex-col items-center justify-center ${data ? 'reserved' : 'available'}`;
-
-                    const canLiberate = data && data.userId === userId;
-
-                    if (data) {
-                        div.innerHTML = `
-                            <p class="font-bold text-slate-900 text-xs text-center leading-tight mb-1">${data.profe}</p>
-                            <p class="text-slate-500 text-[10px] font-semibold">${data.curso}</p>
-                            ${canLiberate ? `
-                                <button onclick="window.liberar('${dateStr}', '${period.id}')" class="mt-2 text-[9px] bg-red-100 text-red-600 px-2 py-1 rounded-lg font-black hover:bg-red-200 transition-all uppercase">Liberar</button>
-                            ` : ''}
-                        `;
+                    
+                    // Si es día pasado, mostrar como deshabilitado
+                    if (isPast) {
+                        div.className = 'period-cell p-3 flex flex-col items-center justify-center bg-slate-50 opacity-50 cursor-not-allowed';
+                        div.innerHTML = '<span class="text-slate-400 text-xs font-bold">Pasado</span>';
                     } else {
-                        div.innerHTML = '<span class="text-green-600 text-xs font-bold">Disponible</span>';
-                        div.onclick = () => openModal(dateStr, period.id, period.h, dayNames[i]);
+                        div.className = `period-cell p-3 flex flex-col items-center justify-center ${data ? 'reserved' : 'available'}`;
+
+                        const canLiberate = data && data.userId === userId;
+
+                        if (data) {
+                            div.innerHTML = `
+                                <p class="font-bold text-slate-900 text-xs text-center leading-tight mb-1">${data.profe}</p>
+                                <p class="text-slate-500 text-[10px] font-semibold">${data.curso}</p>
+                                ${canLiberate ? `
+                                    <button onclick="window.liberar('${dateStr}', '${period.id}')" class="mt-2 text-[9px] bg-red-100 text-red-600 px-2 py-1 rounded-lg font-black hover:bg-red-200 transition-all uppercase">Liberar</button>
+                                ` : ''}
+                            `;
+                        } else {
+                            div.innerHTML = '<span class="text-green-600 text-xs font-bold">Disponible</span>';
+                            div.onclick = () => openModal(dateStr, period.id, period.h, dayNames[i]);
+                        }
                     }
 
                     cell.appendChild(div);
@@ -399,15 +442,38 @@
         };
 
         document.getElementById('prev-week').onclick = () => {
-            currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+            const today = getMonday(new Date());
+            const newWeek = new Date(currentWeekStart);
+            newWeek.setDate(newWeek.getDate() - 7);
+            
+            // No permitir ir a semanas pasadas
+            if (newWeek < today) {
+                return;
+            }
+            
+            currentWeekStart = newWeek;
             updateWeekDisplay();
+            updateNavigationButtons();
             isFirstLoad = true;
             loadWeekData();
         };
 
         document.getElementById('next-week').onclick = () => {
-            currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+            const today = getMonday(new Date());
+            const maxWeek = new Date(today);
+            maxWeek.setDate(maxWeek.getDate() + (4 * 7));
+            
+            const newWeek = new Date(currentWeekStart);
+            newWeek.setDate(newWeek.getDate() + 7);
+            
+            // No permitir ir más allá de 4 semanas
+            if (newWeek > maxWeek) {
+                return;
+            }
+            
+            currentWeekStart = newWeek;
             updateWeekDisplay();
+            updateNavigationButtons();
             isFirstLoad = true;
             loadWeekData();
         };
