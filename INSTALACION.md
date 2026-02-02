@@ -2,12 +2,7 @@
 
 ## 🚀 Paso 1: Crear el repositorio en GitHub
 
-1. Ve a GitHub y haz clic en **"New repository"**
-2. Nombre: `Aula-Informatica`
-3. Descripción: "Sistema de reserva del aula de informática - CEIP Puente de Simancas"
-4. Público ✅
-5. **NO** añadas README, .gitignore ni licencia (ya los tienes)
-6. Crea el repositorio
+✅ **YA LO TIENES CREADO**: `App-para-reserva-de-aula-informatica`
 
 ---
 
@@ -16,12 +11,13 @@
 Sube estos archivos a la raíz del repositorio:
 
 ```
-Aula-Informatica/
+App-para-reserva-de-aula-informatica/
 ├── index.html           ✅ (archivo principal)
 ├── manifest.json        ✅ (configuración PWA)
 ├── icon-192.png         ⚠️ (crear icono verde)
 ├── icon-512.png         ⚠️ (crear icono verde)
-└── README.md            ✅ (documentación)
+├── README.md            ✅ (documentación)
+└── INSTALACION.md       ✅ (esta guía)
 ```
 
 ---
@@ -44,7 +40,7 @@ Aula-Informatica/
 
 ```bash
 # Si no quieres complicarte, copia los iconos de portátiles
-# y renómbbralos (funcionará igual)
+# y renómbralos (funcionará igual)
 ```
 
 ---
@@ -91,7 +87,7 @@ La app ya está configurada para usar tu proyecto existente:
 
 Tu app estará disponible en:
 ```
-https://luisgeria.github.io/Aula-Informatica/
+https://luisgeria.github.io/App-para-reserva-de-aula-informatica/
 ```
 
 **Prueba que funcione:**
@@ -107,7 +103,7 @@ https://luisgeria.github.io/Aula-Informatica/
 
 Comparte el link:
 ```
-https://luisgeria.github.io/Aula-Informatica/
+https://luisgeria.github.io/App-para-reserva-de-aula-informatica/
 ```
 
 En móvil, pueden instalarla como app desde el navegador.
@@ -120,7 +116,7 @@ En móvil, pueden instalarla como app desde el navegador.
 - https://luisgeria.github.io/App-para-reserva-de-portatiles/
 
 **Aula Informática:**
-- https://luisgeria.github.io/Aula-Informatica/
+- https://luisgeria.github.io/App-para-reserva-de-aula-informatica/
 
 ---
 
@@ -131,7 +127,7 @@ En móvil, pueden instalarla como app desde el navegador.
 - Verifica que los archivos estén en la raíz (no en carpetas)
 
 **Error 404 en la app instalada:**
-- Verifica que el `manifest.json` tenga las rutas correctas con `/Aula-Informatica/`
+- Verifica que el `manifest.json` tenga las rutas correctas con `/App-para-reserva-de-aula-informatica/`
 
 **No se sincronizan las reservas:**
 - Verifica las reglas de Firebase
