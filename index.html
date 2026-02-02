@@ -6,7 +6,6 @@
     <meta name="description" content="Sistema de reserva del aula de informática en tiempo real para CEIP Puente de Simancas">
     <meta name="theme-color" content="#10b981">
     
-    <!-- PWA Tags -->
     <link rel="manifest" href="manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -20,125 +19,83 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap');
         body { font-family: 'Outfit', sans-serif; background-color: #f0fdf4; }
+        
         .day-header { 
             position: sticky; 
             top: 0; 
             z-index: 10; 
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         }
+
         .period-cell { 
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             border-radius: 0.75rem; 
             border: 2px solid #d1fae5;
             min-height: 80px;
         }
+
         .reserved { background-color: #fee2e2; border-color: #fca5a5; }
         .available { background-color: #ffffff; cursor: pointer; }
         .available:hover { border-color: #10b981; transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        
         .modal { display: none; position: fixed; inset: 0; background: rgba(5, 150, 105, 0.3); align-items: center; justify-content: center; z-index: 50; backdrop-filter: blur(8px); }
         .modal.active { display: flex; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; transition: background-color 0.3s; }
-        .week-nav { 
-            display: flex; 
-            gap: 0.5rem; 
-            overflow-x: auto; 
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-        .week-nav::-webkit-scrollbar { display: none; }
         
-        /* Tabla responsive mejorada para móvil */
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; transition: background-color 0.3s; }
+
+        /* CONTENEDOR DE SCROLL CORREGIDO */
         .schedule-table { 
-            overflow-x: auto;
-            overflow-y: visible;
-            -webkit-overflow-scrolling: touch;
             width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            display: block;
             position: relative;
         }
         
         .schedule-table table {
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             width: 100%;
+            min-width: 800px; /* Asegura que el contenido sea más ancho que el móvil */
         }
-        
+
         @media (max-width: 768px) {
-            .schedule-table {
-                /* Forzar scroll en móvil */
-                display: block;
-                width: 100%;
-                overflow-x: scroll;
-                overflow-y: visible;
-            }
-            
-            .schedule-table table {
-                /* Ancho fijo mayor que la pantalla para forzar scroll */
-                width: 750px !important;
-                min-width: 750px;
-                display: table;
-            }
-            
-            /* Primera columna fija */
+            /* Columna de Horario fija para móviles */
             .schedule-table th:first-child,
             .schedule-table td:first-child {
                 position: sticky;
                 left: 0;
-                z-index: 10;
+                z-index: 20;
                 background: white;
-                box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+                box-shadow: 2px 0 5px rgba(0,0,0,0.05);
             }
             
             .schedule-table th:first-child {
-                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                z-index: 11;
+                background: #059669; /* Verde oscuro para el header fijo */
+                z-index: 21;
             }
-            
-            /* Ajustar tamaños */
-            .schedule-table th,
-            .schedule-table td {
-                padding: 0.5rem;
-                min-width: 110px;
-            }
-            
-            .schedule-table th:first-child,
-            .schedule-table td:first-child {
-                min-width: 80px;
-                width: 80px;
-            }
-            
+
             .day-header th {
-                font-size: 0.7rem;
-                padding: 0.75rem 0.5rem;
-            }
-            
-            .period-cell {
-                min-height: 70px;
                 font-size: 0.75rem;
-                padding: 0.6rem !important;
-            }
-            
-            /* Scrollbar visible en móvil */
-            .schedule-table::-webkit-scrollbar {
-                height: 8px;
-                -webkit-appearance: none;
-            }
-            
-            .schedule-table::-webkit-scrollbar-track {
-                background: #e5e7eb;
-                border-radius: 4px;
-            }
-            
-            .schedule-table::-webkit-scrollbar-thumb {
-                background: #10b981;
-                border-radius: 4px;
+                padding: 1rem 0.5rem;
             }
         }
-        
-        @media (min-width: 769px) {
-            .schedule-table table {
-                width: 100%;
-            }
+
+        /* Flecha indicadora de scroll */
+        .scroll-hint {
+            display: none;
+            background: #d1fae5;
+            color: #065f46;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            border-top: 1px solid #a7f3d0;
         }
-        
+        @media (max-width: 768px) {
+            .scroll-hint { display: block; }
+        }
+
         /* Banner de instalación PWA */
         .install-banner {
             position: fixed;
@@ -155,19 +112,8 @@
             z-index: 1000;
             animation: slideUp 0.3s ease-out;
         }
-        
-        .install-banner.show {
-            display: flex;
-        }
-        
-        @keyframes slideUp {
-            from {
-                transform: translateY(100%);
-            }
-            to {
-                transform: translateY(0);
-            }
-        }
+        .install-banner.show { display: flex; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     </style>
 </head>
 <body class="p-4 md:p-6">
@@ -184,7 +130,6 @@
             </div>
         </header>
 
-        <!-- Instrucciones -->
         <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-5 shadow-sm border border-green-100 mb-6">
             <h2 class="text-base font-black text-slate-800 mb-3 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
@@ -204,7 +149,6 @@
             </ul>
         </div>
 
-        <!-- Navegación semanal -->
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 mb-6">
             <div class="flex items-center justify-between gap-4">
                 <button id="prev-week" class="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all active:scale-95">
@@ -224,10 +168,9 @@
             </div>
         </div>
 
-        <!-- Tabla de horarios -->
         <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
             <div class="schedule-table" id="schedule-container">
-                <table class="w-full" id="schedule-table">
+                <table id="schedule-table">
                     <thead>
                         <tr class="day-header text-white">
                             <th class="p-3 text-left text-xs font-bold uppercase tracking-wider">Horario</th>
@@ -247,9 +190,8 @@
                     </tbody>
                 </table>
             </div>
-            <!-- Indicador de scroll -->
-            <div id="scroll-indicator" class="hidden md:hidden bg-green-100 text-green-700 text-xs font-bold py-2 px-4 text-center">
-                👉 Desliza para ver más días
+            <div class="scroll-hint" id="scroll-hint">
+                <span>← Desliza para ver toda la semana →</span>
             </div>
         </div>
 
@@ -259,7 +201,6 @@
         </div>
     </div>
 
-    <!-- Banner de instalación PWA -->
     <div id="install-banner" class="install-banner">
         <div class="flex items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -280,7 +221,6 @@
         </div>
     </div>
 
-    <!-- Modal Reserva -->
     <div id="reserve-modal" class="modal">
         <div class="bg-white w-full max-w-sm m-4 p-8 rounded-3xl shadow-2xl">
             <h3 class="text-2xl font-black text-slate-900 mb-2">Nueva Reserva</h3>
@@ -377,31 +317,25 @@
         function updateNavigationButtons() {
             const today = getMonday(new Date());
             const maxWeek = new Date(today);
-            maxWeek.setDate(maxWeek.getDate() + (4 * 7)); // 4 semanas adelante
+            maxWeek.setDate(maxWeek.getDate() + (4 * 7));
             
             const prevBtn = document.getElementById('prev-week');
             const nextBtn = document.getElementById('next-week');
             
-            // Deshabilitar botón anterior si estamos en la semana actual
             if (currentWeekStart <= today) {
                 prevBtn.disabled = true;
                 prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                prevBtn.classList.remove('hover:bg-slate-200', 'active:scale-95');
             } else {
                 prevBtn.disabled = false;
                 prevBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                prevBtn.classList.add('hover:bg-slate-200', 'active:scale-95');
             }
             
-            // Deshabilitar botón siguiente si estamos a 4 semanas
             if (currentWeekStart >= maxWeek) {
                 nextBtn.disabled = true;
                 nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                nextBtn.classList.remove('hover:bg-slate-200', 'active:scale-95');
             } else {
                 nextBtn.disabled = false;
                 nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                nextBtn.classList.add('hover:bg-slate-200', 'active:scale-95');
             }
         }
 
@@ -410,17 +344,13 @@
             reserves = {};
 
             try {
-                // Cargamos los datos de la semana
                 let connectedCount = 0;
-                
                 for (let i = 0; i < 5; i++) {
                     const date = new Date(currentWeekStart);
                     date.setDate(date.getDate() + i);
                     const dateStr = formatDate(date);
-                    
                     const dayRef = ref(database, `aula-informatica/${dateStr}`);
                     
-                    // Listener en tiempo real
                     onValue(dayRef, (snapshot) => {
                         const data = snapshot.val();
                         if (data) {
@@ -429,33 +359,16 @@
                                 reserves[slotKey] = data[key];
                             });
                         }
-                        
                         connectedCount++;
                         if (connectedCount === 1 && isFirstLoad) {
                             updateConnectionStatus('connected', 'Conectado');
                             isFirstLoad = false;
                         }
-                        
                         render();
-                    }, (error) => {
-                        console.error('Error:', error);
-                        updateConnectionStatus('error', 'Error de conexión');
                     });
                 }
-                
-                // Timeout de seguridad
-                setTimeout(() => {
-                    if (isFirstLoad) {
-                        updateConnectionStatus('connected', 'Conectado');
-                        isFirstLoad = false;
-                        render();
-                    }
-                }, 2000);
-                
             } catch (error) {
-                console.error('Error al cargar:', error);
-                updateConnectionStatus('error', 'Error al conectar');
-                render();
+                updateConnectionStatus('error', 'Error de conexión');
             }
         }
 
@@ -485,36 +398,29 @@
 
                     const cell = document.createElement('td');
                     cell.className = 'p-2';
-
                     const div = document.createElement('div');
                     
-                    // Si es día pasado, mostrar como deshabilitado
                     if (isPast) {
                         div.className = 'period-cell p-3 flex flex-col items-center justify-center bg-slate-50 opacity-50 cursor-not-allowed';
                         div.innerHTML = '<span class="text-slate-400 text-xs font-bold">Pasado</span>';
                     } else {
                         div.className = `period-cell p-3 flex flex-col items-center justify-center ${data ? 'reserved' : 'available'}`;
-
                         const canLiberate = data && data.userId === userId;
 
                         if (data) {
                             div.innerHTML = `
                                 <p class="font-bold text-slate-900 text-xs text-center leading-tight mb-1">${data.profe}</p>
                                 <p class="text-slate-500 text-[10px] font-semibold">${data.curso}</p>
-                                ${canLiberate ? `
-                                    <button onclick="window.liberar('${dateStr}', '${period.id}')" class="mt-2 text-[9px] bg-red-100 text-red-600 px-2 py-1 rounded-lg font-black hover:bg-red-200 transition-all uppercase">Liberar</button>
-                                ` : ''}
+                                ${canLiberate ? `<button onclick="window.liberar('${dateStr}', '${period.id}')" class="mt-2 text-[9px] bg-red-100 text-red-600 px-2 py-1 rounded-lg font-black uppercase">Liberar</button>` : ''}
                             `;
                         } else {
                             div.innerHTML = '<span class="text-green-600 text-xs font-bold">Disponible</span>';
                             div.onclick = () => openModal(dateStr, period.id, period.h, dayNames[i]);
                         }
                     }
-
                     cell.appendChild(div);
                     row.appendChild(cell);
                 }
-
                 tbody.appendChild(row);
             });
         }
@@ -535,20 +441,8 @@
         window.liberar = async (date, slotId) => {
             const slotKey = `${date}_${slotId}`;
             const reserva = reserves[slotKey];
-            
-            if (!reserva || reserva.userId !== userId) {
-                alert('Solo quien reservó puede liberar este horario.');
-                return;
-            }
-
-            if (confirm('¿Quieres liberar este horario?')) {
-                try {
-                    const slotRef = ref(database, `aula-informatica/${date}/${slotId}`);
-                    await remove(slotRef);
-                } catch (e) { 
-                    console.error("Error liberando:", e);
-                    alert("Error al liberar el horario.");
-                }
+            if (reserva && reserva.userId === userId && confirm('¿Quieres liberar este horario?')) {
+                await remove(ref(database, `aula-informatica/${date}/${slotId}`));
             }
         };
 
@@ -557,176 +451,59 @@
             const btn = document.getElementById('submit-btn');
             btn.innerText = "Guardando...";
             btn.disabled = true;
-
             try {
-                const reserva = {
+                await set(ref(database, `aula-informatica/${selectedSlot.date}/${selectedSlot.slotId}`), {
                     slotId: selectedSlot.slotId,
                     date: selectedSlot.date,
                     profe: document.getElementById('profesor-name').value,
                     curso: document.getElementById('curso-name').value,
                     timestamp: Date.now(),
                     userId: userId
-                };
-
-                const slotRef = ref(database, `aula-informatica/${selectedSlot.date}/${selectedSlot.slotId}`);
-                await set(slotRef, reserva);
+                });
                 closeModal();
-            } catch (err) {
-                console.error("Error al guardar:", err);
-                alert("Error al guardar la reserva.");
-                btn.innerText = "Reintentar";
-                btn.disabled = false;
-            }
+            } catch (err) { alert("Error al guardar."); btn.disabled = false; }
         };
 
         document.getElementById('prev-week').onclick = () => {
-            const today = getMonday(new Date());
             const newWeek = new Date(currentWeekStart);
             newWeek.setDate(newWeek.getDate() - 7);
-            
-            // No permitir ir a semanas pasadas
-            if (newWeek < today) {
-                return;
+            if (newWeek >= getMonday(new Date())) {
+                currentWeekStart = newWeek;
+                updateWeekDisplay(); updateNavigationButtons(); isFirstLoad = true; loadWeekData();
             }
-            
-            currentWeekStart = newWeek;
-            updateWeekDisplay();
-            updateNavigationButtons();
-            isFirstLoad = true;
-            loadWeekData();
         };
 
         document.getElementById('next-week').onclick = () => {
-            const today = getMonday(new Date());
-            const maxWeek = new Date(today);
-            maxWeek.setDate(maxWeek.getDate() + (4 * 7));
-            
             const newWeek = new Date(currentWeekStart);
             newWeek.setDate(newWeek.getDate() + 7);
-            
-            // No permitir ir más allá de 4 semanas
-            if (newWeek > maxWeek) {
-                return;
-            }
-            
             currentWeekStart = newWeek;
-            updateWeekDisplay();
-            updateNavigationButtons();
-            isFirstLoad = true;
-            loadWeekData();
+            updateWeekDisplay(); updateNavigationButtons(); isFirstLoad = true; loadWeekData();
         };
 
         function updateConnectionStatus(status, text) {
             const dot = document.getElementById('conn-dot');
-            const textEl = document.getElementById('conn-text');
-            
-            if (status === 'connected') {
-                dot.className = 'status-dot bg-green-500';
-            } else if (status === 'connecting') {
-                dot.className = 'status-dot bg-yellow-500';
-            } else {
-                dot.className = 'status-dot bg-red-500';
-            }
-            
-            textEl.innerText = text;
+            dot.className = `status-dot ${status === 'connected' ? 'bg-green-500' : 'bg-yellow-500'}`;
+            document.getElementById('conn-text').innerText = text;
         }
 
         userId = getUserId();
-        updateConnectionStatus('connecting', 'Iniciando...');
         initWeek();
 
-        // Indicador de scroll en móvil
-        const scheduleContainer = document.getElementById('schedule-container');
-        const scrollIndicator = document.getElementById('scroll-indicator');
-        
-        if (window.innerWidth <= 768) {
-            scrollIndicator.classList.remove('hidden');
-            
-            scheduleContainer.addEventListener('scroll', () => {
-                if (scheduleContainer.scrollLeft > 10) {
-                    scrollIndicator.classList.add('hidden');
-                }
-            });
-            
-            // Ocultar después de 3 segundos
-            setTimeout(() => {
-                scrollIndicator.classList.add('hidden');
-            }, 3000);
-        }
-
-        // PWA - Instalación (mejorado para iOS y Android)
+        // Lógica de PWA (Banner instalación)
         let deferredPrompt;
-        const installBanner = document.getElementById('install-banner');
-        const installBtn = document.getElementById('install-btn');
-        const dismissBtn = document.getElementById('dismiss-btn');
-
-        // Detectar si es móvil
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        
-        // Detectar si ya está instalada
-        const isInstalled = window.matchMedia('(display-mode: standalone)').matches || 
-                           window.navigator.standalone === true;
-
-        // Para Android (Chrome/Edge)
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            
-            if (!localStorage.getItem('pwa-dismissed') && !isInstalled) {
-                setTimeout(() => {
-                    installBanner.classList.add('show');
-                }, 3000);
-            }
+            if (!localStorage.getItem('pwa-dismissed')) document.getElementById('install-banner').classList.add('show');
         });
-
-        // Para iOS y Android (mostrar instrucciones)
-        if (isMobile && !isInstalled && !localStorage.getItem('pwa-dismissed')) {
-            // Si no hay beforeinstallprompt (iOS), mostrar banner con instrucciones
-            setTimeout(() => {
-                if (!deferredPrompt) {
-                    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-                    if (isIOS) {
-                        // Cambiar texto del botón para iOS
-                        document.querySelector('#install-banner p.font-bold').textContent = 'Añadir a Inicio';
-                        document.querySelector('#install-banner p.opacity-90').textContent = 'Toca el botón compartir ⬆️';
-                    }
-                    installBanner.classList.add('show');
-                }
-            }, 3000);
-        }
-
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                // Android: instalación directa
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                
-                if (outcome === 'accepted') {
-                    console.log('PWA instalada');
-                }
-                
-                deferredPrompt = null;
-                installBanner.classList.remove('show');
-            } else {
-                // iOS: mostrar instrucciones
-                const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-                if (isIOS) {
-                    alert('Para instalar:\n1. Toca el botón Compartir ⬆️\n2. Selecciona "Añadir a pantalla de inicio"');
-                }
-                installBanner.classList.remove('show');
-            }
-        });
-
-        dismissBtn.addEventListener('click', () => {
-            installBanner.classList.remove('show');
+        document.getElementById('install-btn').onclick = async () => {
+            if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; }
+            document.getElementById('install-banner').classList.remove('show');
+        };
+        document.getElementById('dismiss-btn').onclick = () => {
+            document.getElementById('install-banner').classList.remove('show');
             localStorage.setItem('pwa-dismissed', 'true');
-        });
-
-        // Ocultar banner si la app ya está instalada
-        window.addEventListener('appinstalled', () => {
-            installBanner.classList.remove('show');
-            console.log('PWA instalada correctamente');
-        });
+        };
     </script>
 </body>
 </html>
