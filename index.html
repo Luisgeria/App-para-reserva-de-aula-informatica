@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reserva Aula Informática - CEIP Puente de Simancas</title>
     <style>
         * {
@@ -92,14 +92,31 @@
         }
         .calendar-container {
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
             border-radius: 10px;
             box-shadow: 0 3px 10px rgba(0,0,0,0.1);
             margin-bottom: 20px;
+            scrollbar-width: thin;
+            scrollbar-color: #888 #f1f1f1;
+        }
+        .calendar-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        .calendar-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .calendar-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        .calendar-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 600px;
+            min-width: 650px;
         }
         th {
             background-color: #2e7d32;
@@ -107,18 +124,24 @@
             padding: 12px 8px;
             text-align: center;
             font-size: 1.1rem;
+            position: sticky;
+            top: 0;
         }
         td {
             padding: 12px 8px;
             text-align: center;
             border: 1px solid #e0e0e0;
-            min-width: 120px;
+            min-width: 100px;
         }
         .time-slot {
             font-weight: bold;
             color: #1b5e20;
             text-align: left;
             padding-left: 10px;
+            position: sticky;
+            left: 0;
+            background-color: white;
+            z-index: 2;
         }
         .available {
             background-color: #e8f5e9;
@@ -144,6 +167,20 @@
             color: #546e7a;
             margin-top: 5px;
             font-size: 0.9rem;
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .scroll-hint {
+                display: block;
+            }
+            .week-selector {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .week-selector button {
+                width: 100%;
+                height: 45px;
+            }
         }
         .realtime {
             text-align: center;
@@ -219,7 +256,7 @@
         .modal input {
             width: 100%;
             padding: 10px;
-            margin: 8 0;
+            margin: 8px 0;
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 1rem;
@@ -256,16 +293,6 @@
             box-shadow: 0 3px 10px rgba(0,0,0,0.2);
             display: none;
             z-index: 2000;
-        }
-        @media (max-width: 768px) {
-            .week-selector {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .week-selector button {
-                width: 100%;
-                height: 45px;
-            }
         }
     </style>
 </head>
@@ -309,7 +336,7 @@
                     <td class="time-slot">09:00 - 10:00</td>
                     <td class="available">Disponible</td>
                     <td class="available">Disponible</td>
-                    <td class="available">Dis</td>
+                    <td class="available">Disponible</td>
                     <td class="available">Disponible</td>
                     <td class="available">Disponible</td>
                 </tr>
@@ -347,22 +374,6 @@
                 </tr>
                 <tr>
                     <td class="time-slot">13:30 - 14:00</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                </tr>
-                <tr>
-                    <td class="time-slot">14:00 - 15:00</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                    <td class="available">Disponible</td>
-                </tr>
-                <tr>
-                    <td class="time-slot">15:00 - 16:00</td>
                     <td class="available">Disponible</td>
                     <td class="available">Disponible</td>
                     <td class="available">Disponible</td>
@@ -410,13 +421,6 @@
             const closeInstall = document.getElementById('closeInstall');
             const notification = document.getElementById('notification');
             
-            // Simulated data for the calendar
-            const timeSlots = [
-                '09:00 - 10:00', '10:00 - 11:00', '11:00 - 12:00',
-                '12:30 - 13:00', '13:00 - 13:30', '13:30 - 14:00',
-                '14:00 - 15:00', '15:00 - 16:00'
-            ];
-            
             // Show reservation modal when clicking on available slot
             document.querySelectorAll('.available').forEach(slot => {
                 slot.addEventListener('click', function() {
@@ -445,7 +449,6 @@
                         notification.style.display = 'none';
                     }, 3000);
                     
-                    // In a real app, this would send data to the server
                     console.log('Reservation confirmed:', {
                         teacher: teacherName,
                         course: courseGroup
@@ -456,7 +459,6 @@
             // Install button functionality
             installBtn.addEventListener('click', function() {
                 if (window.confirm('¿Quieres instalar la aplicación para acceder más rápido?')) {
-                    // In a real app, this would trigger the install process
                     installPrompt.style.display = 'none';
                     notification.textContent = 'App instalada con éxito';
                     notification.style.display = 'block';
@@ -473,15 +475,11 @@
             // Week navigation
             document.getElementById('prev-week').addEventListener('click', function() {
                 const weekElement = document.querySelector('.week-selector h2');
-                const currentWeek = weekElement.textContent;
-                // In a real app, this would fetch previous week's data
                 weekElement.textContent = 'Semana anterior';
             });
             
             document.getElementById('next-week').addEventListener('click', function() {
                 const weekElement = document.querySelector('.week-selector h2');
-                const currentWeek = weekElement.textContent;
-                // In a real app, this would fetch next week's data
                 weekElement.textContent = 'Semana siguiente';
             });
             
@@ -493,6 +491,8 @@
     </script>
 </body>
 </html>
+
+
 
 
 
