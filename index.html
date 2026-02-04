@@ -49,71 +49,102 @@
         
         /* Tabla responsive mejorada para móvil */
         .schedule-table { 
-            overflow-x: auto; 
+            overflow-x: auto;
+            overflow-y: visible;
             -webkit-overflow-scrolling: touch;
             width: 100%;
-        }
-        
-        .schedule-table::-webkit-scrollbar {
-            height: 6px;
-        }
-        
-        .schedule-table::-webkit-scrollbar-track {
-            background: #e5e7eb;
-            border-radius: 10px;
-        }
-        
-        .schedule-table::-webkit-scrollbar-thumb {
-            background: #10b981;
-            border-radius: 10px;
+            position: relative;
         }
         
         .schedule-table table {
+            border-collapse: collapse;
             width: 100%;
-            min-width: 100%;
         }
         
         @media (max-width: 768px) {
+            .schedule-table {
+                /* Forzar scroll en móvil */
+                display: block;
+                width: 100%;
+                overflow-x: scroll !important;
+                overflow-y: visible;
+                /* Scrollbar visible para Firefox móvil */
+                scrollbar-width: thin;
+                scrollbar-color: #10b981 #e5e7eb;
+            }
+            
             .schedule-table table {
-                min-width: 700px;
-                table-layout: fixed;
+                /* Ancho fijo mayor que la pantalla para forzar scroll */
+                width: 750px !important;
+                min-width: 750px;
+                display: table;
             }
             
-            .schedule-table table th,
-            .schedule-table table td {
-                width: auto;
-            }
-            
-            .schedule-table table th:first-child,
-            .schedule-table table td:first-child {
-                width: 90px;
-                min-width: 90px;
-            }
-            
-            .period-cell {
-                min-height: 65px;
-                font-size: 0.7rem;
-                padding: 0.5rem !important;
-            }
-            
-            .day-header th {
-                padding: 0.6rem 0.3rem;
-                font-size: 0.65rem;
-            }
-            
+            /* Primera columna fija */
+            .schedule-table th:first-child,
             .schedule-table td:first-child {
                 position: sticky;
                 left: 0;
+                z-index: 10;
                 background: white;
-                z-index: 5;
-                box-shadow: 3px 0 5px rgba(0,0,0,0.08);
+                box-shadow: 2px 0 5px rgba(0,0,0,0.1);
             }
             
             .schedule-table th:first-child {
-                position: sticky;
-                left: 0;
-                z-index: 11;
                 background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                z-index: 11;
+            }
+            
+            /* Ajustar tamaños */
+            .schedule-table th,
+            .schedule-table td {
+                padding: 0.5rem;
+                min-width: 110px;
+            }
+            
+            .schedule-table th:first-child,
+            .schedule-table td:first-child {
+                min-width: 80px;
+                width: 80px;
+            }
+            
+            .day-header th {
+                font-size: 0.7rem;
+                padding: 0.75rem 0.5rem;
+            }
+            
+            .period-cell {
+                min-height: 70px;
+                font-size: 0.75rem;
+                padding: 0.6rem !important;
+            }
+            
+            /* Scrollbar visible en móvil (Chrome/Safari) */
+            .schedule-table::-webkit-scrollbar {
+                height: 10px !important;
+                -webkit-appearance: none;
+                display: block !important;
+            }
+            
+            .schedule-table::-webkit-scrollbar-track {
+                background: #e5e7eb;
+                border-radius: 5px;
+            }
+            
+            .schedule-table::-webkit-scrollbar-thumb {
+                background: #10b981;
+                border-radius: 5px;
+                min-width: 40px;
+            }
+            
+            .schedule-table::-webkit-scrollbar-thumb:hover {
+                background: #059669;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .schedule-table table {
+                width: 100%;
             }
         }
         
@@ -203,26 +234,32 @@
         </div>
 
         <!-- Tabla de horarios -->
-        <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden schedule-table">
-            <table class="w-full" id="schedule-table">
-                <thead>
-                    <tr class="day-header text-white">
-                        <th class="p-3 text-left text-xs font-bold uppercase tracking-wider">Horario</th>
-                        <th class="p-3 text-center text-xs font-bold uppercase tracking-wider">Lun</th>
-                        <th class="p-3 text-center text-xs font-bold uppercase tracking-wider">Mar</th>
-                        <th class="p-3 text-center text-xs font-bold uppercase tracking-wider">Mié</th>
-                        <th class="p-3 text-center text-xs font-bold uppercase tracking-wider">Jue</th>
-                        <th class="p-3 text-center text-xs font-bold uppercase tracking-wider">Vie</th>
-                    </tr>
-                </thead>
-                <tbody id="schedule-body">
-                    <tr>
-                        <td colspan="6" class="p-8 text-center text-slate-400 animate-pulse">
-                            Cargando horarios...
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="schedule-table" id="schedule-container">
+                <table class="w-full" id="schedule-table">
+                    <thead>
+                        <tr class="day-header text-white">
+                            <th class="p-3 text-left text-xs font-bold uppercase tracking-wider">Horario</th>
+                            <th class="p-3 text-center text-xs font-bold uppercase tracking-wider">Lun</th>
+                            <th class="p-3 text-center text-xs font-bold uppercase tracking-wider">Mar</th>
+                            <th class="p-3 text-center text-xs font-bold uppercase tracking-wider">Mié</th>
+                            <th class="p-3 text-center text-xs font-bold uppercase tracking-wider">Jue</th>
+                            <th class="p-3 text-center text-xs font-bold uppercase tracking-wider">Vie</th>
+                        </tr>
+                    </thead>
+                    <tbody id="schedule-body">
+                        <tr>
+                            <td colspan="6" class="p-8 text-center text-slate-400 animate-pulse">
+                                Cargando horarios...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Indicador de scroll -->
+            <div id="scroll-indicator" class="hidden md:hidden bg-green-100 text-green-700 text-xs font-bold py-2 px-4 text-center">
+                👉 Desliza para ver más días
+            </div>
         </div>
 
         <div class="mt-6 text-center space-y-2">
@@ -606,6 +643,25 @@
         userId = getUserId();
         updateConnectionStatus('connecting', 'Iniciando...');
         initWeek();
+
+        // Indicador de scroll en móvil
+        const scheduleContainer = document.getElementById('schedule-container');
+        const scrollIndicator = document.getElementById('scroll-indicator');
+        
+        if (window.innerWidth <= 768) {
+            scrollIndicator.classList.remove('hidden');
+            
+            scheduleContainer.addEventListener('scroll', () => {
+                if (scheduleContainer.scrollLeft > 10) {
+                    scrollIndicator.classList.add('hidden');
+                }
+            });
+            
+            // Ocultar después de 3 segundos
+            setTimeout(() => {
+                scrollIndicator.classList.add('hidden');
+            }, 3000);
+        }
 
         // PWA - Instalación (mejorado para iOS y Android)
         let deferredPrompt;
